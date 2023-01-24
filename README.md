@@ -471,8 +471,70 @@ How data versioning works? - _reflinks_
 >
 >Installing Hydra: `pip install hydra-core --upgrade`
 
+You must have all configurations in a folder named __config__ as per our Pyscaffold Cookie-cutter DS template.
+
+To import configuration to a python file:
+1. Method 1: 
+    ```python
+    import hydra
+    from omegaconf import DictConfig, OmegaConf
+
+    @hydra.main(version_base=None, config_path="conf", config_name="config")
+    def my_app(cfg : DictConfig) -> None:
+        print(OmegaConf.to_yaml(cfg))
+
+    if __name__ == "__main__":
+        my_app()
+    ```
+
+2. Method 2:
+   ```python
+    from hydra import compose, initialize
+
+    # Loading configuration file using Hydra
+    initialize(version_base=None, config_path='../../configs')
+    config = compose(config_name=config_name)
+   ```
+
+To use configuration: `config.<>.<>`
+
+
 ## [Weights and Biases](https://wandb.ai/)
 
 > Experiment tracking utility for machine learning.
 >
 > Installing Wandb: pip install wandb
+
+To Login:
+1. Open wandb.ai > Settings > Danger Zone > API
+   
+2. Copy your API key.
+
+3. Execute `wandb login` & paste your key.
+
+You must be logged in to your Weights and Biases account now.
+
+To start a new run:
+```python
+import wandb
+wandb.init(project = '<Project_name>', config = config)
+# Note that config has to be loaded using Hydra.cc before
+# calling this command.
+# This will upload training configurations to W&B portal.
+```
+
+Integration with __Keras__:
+```python
+# We use keras callback to integrate W&B with our model.
+# This will log accuracy, AUR loss, GPU & CPU usage.
+# Pass the callback to model.fit
+model.fit(
+  X_train,
+  y_train,
+  validation_data=(X_test, y_test),
+  callbacks=[WandbCallback()]
+)
+```
+
+To log any other metrics:
+`wandb.log('parameter_name': parameter_value)`
